@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>АгроСкоринг КЗ 4.0</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+body.light-mode{--bg:#f0f2f5;--bg2:#fff;--bg3:#e4e6eb;--border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.15);--text:#1c1e21;--text2:#606770;--text3:#8d949e;}
+.theme-btn{position:fixed;top:20px;right:20px;z-index:1000;padding:8px 10px;border-radius:50%;cursor:pointer;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-size:14px;}
+
+:root{
+  --bg:#0a0f1e;--bg2:#111827;--bg3:#1a2332;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --gold:#f5b731;--gold2:#ffd166;--teal:#00c9a7;--red:#ff6b6b;--orange:#ff9a3c;--blue:#4895ef;
+  --text:#e8eaf0;--text2:#8892a4;--text3:#5a6478;
+  --font:'Golos Text',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+  --r:10px;--r2:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;overflow-x:hidden;}
+.app{max-width:900px;margin:0 auto;padding:16px 12px 60px;}
+
+.header{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap;row-gap:10px;}
+.logo-badge{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#003580,#00509d);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(255,255,255,0.1);}
+.header-text h1{font-size:clamp(14px,3vw,18px);font-weight:700;letter-spacing:-0.3px;}
+.header-text p{font-size:10px;color:var(--text2);margin-top:2px;}
+.header-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:5px;}
+.header-badge{padding:3px 9px;background:rgba(0,201,167,.1);border:1px solid rgba(0,201,167,.2);border-radius:20px;font-size:10px;color:var(--teal);font-weight:600;white-space:nowrap;}
+.api-status{display:inline-flex;align-items:center;gap:5px;font-size:10px;padding:3px 8px;border-radius:20px;}
+.api-online{background:rgba(0,201,167,.1);border:1px solid rgba(0,201,167,.2);color:var(--teal);}
+.api-offline{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.2);color:var(--red);}
+.api-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+.role-switcher{display:flex;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden;flex-shrink:0;}
+.role-btn{padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text3);transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.role-btn.active-farmer{background:rgba(72,149,239,.15);color:var(--blue);}
+.role-btn.active-expert{background:rgba(245,183,49,.15);color:var(--gold);}
+
+.nav-tabs{display:flex;gap:0;margin-bottom:20px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.nav-tab{flex:1;padding:10px 16px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.nav-tab.active{background:var(--bg2);color:var(--text);}
+.nav-tab-badge{background:var(--gold);color:#000;border-radius:10px;padding:1px 6px;font-size:9px;font-weight:700;}
+
+.stepper{display:flex;align-items:center;margin-bottom:20px;}
+.step{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:var(--text3);white-space:nowrap;transition:color .3s;}
+.step.active{color:var(--text);}.step.done{color:var(--teal);}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;transition:all .3s;}
+.step.active .step-num{background:var(--gold);border-color:var(--gold);color:#000;}
+.step.done .step-num{background:var(--teal);border-color:var(--teal);color:#000;}
+.step-label{display:none;}
+@media(min-width:480px){.step-label{display:inline;}}
+.step-line{flex:1;height:1px;background:var(--border);margin:0 6px;min-width:8px;}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:14px;}
+.card-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.card-title::before{content:'';width:3px;height:13px;background:var(--gold);border-radius:2px;flex-shrink:0;}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+@media(max-width:540px){.form-grid,.form-grid-3{grid-template-columns:1fr;}}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:11px;color:var(--text2);font-weight:500;}
+.req{color:var(--gold);font-size:9px;margin-left:2px;}
+input,select,textarea{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--text);font-family:var(--font);font-size:13px;transition:border-color .2s,box-shadow .2s;outline:none;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:rgba(245,183,49,.4);box-shadow:0 0 0 3px rgba(245,183,49,.08);}
+input::placeholder{color:var(--text3);}
+select{appearance:none;cursor:pointer;}
+select option{background:var(--bg2);}
+
+/* Crop group labels */
+.crop-group{margin-bottom:10px;}
+.crop-group-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+
+.check-grid{display:flex;flex-wrap:wrap;gap:7px;}
+.check-item{display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:var(--r);background:var(--bg3);border:1px solid var(--border);cursor:pointer;transition:all .2s;font-size:12px;user-select:none;}
+.check-item:hover{border-color:var(--border2);}
+.check-item.checked{background:rgba(245,183,49,.08);border-color:rgba(245,183,49,.3);color:var(--gold2);}
+.check-item.priority-item.checked{background:rgba(72,149,239,.08);border-color:rgba(72,149,239,.3);color:#90c4ff;}
+.check-dot{width:13px;height:13px;border-radius:3px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.check-item.checked .check-dot{background:var(--gold);border-color:var(--gold);}
+.check-item.priority-item.checked .check-dot{background:var(--blue);border-color:var(--blue);}
+.check-dot::after{content:'✓';font-size:8px;color:#000;opacity:0;transition:opacity .2s;}
+.check-item.checked .check-dot::after,.check-item.priority-item.checked .check-dot::after{opacity:1;}
+
+.range-wrap{display:flex;flex-direction:column;gap:5px;}
+.range-header{display:flex;justify-content:space-between;align-items:center;}
+.range-val{font-family:var(--mono);font-size:12px;color:var(--gold);font-weight:500;}
+input[type=range]{-webkit-appearance:none;background:transparent;padding:0;height:18px;cursor:pointer;}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--bg3);border:1px solid var(--border);}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);margin-top:-7px;border:none;box-shadow:0 0 0 3px rgba(245,183,49,.2);}
+
+.btn{padding:10px 20px;border-radius:var(--r);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
+.btn-primary{background:var(--gold);color:#000;}
+.btn-primary:hover{background:var(--gold2);}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text);}
+.btn-blue{background:rgba(72,149,239,.12);color:var(--blue);border:1px solid rgba(72,149,239,.3);}
+.btn-blue:hover{background:rgba(72,149,239,.2);}
+.btn-row{display:flex;justify-content:space-between;align-items:center;margin-top:20px;gap:10px;flex-wrap:wrap;}
+
+.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);text-align:center;}
+.loader-ring{width:56px;height:56px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--gold);animation:spin .8s linear infinite;margin-bottom:16px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.stage-list{display:flex;flex-direction:column;gap:8px;text-align:left;margin-top:16px;width:100%;max-width:300px;}
+.stage-item{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--text3);transition:color .3s;}
+.stage-item.done{color:var(--teal);}.stage-item.active{color:var(--text);}
+.s-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.stage-item.active .s-dot{animation:pdot 1s ease-in-out infinite;}
+@keyframes pdot{0%,100%{opacity:1}50%{opacity:.4}}
+
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;padding:16px 12px 8px;}
+.score-verdict{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-top:8px;letter-spacing:.3px;}
+.verdict-approve{background:rgba(0,201,167,.1);border:1px solid rgba(0,201,167,.25);color:var(--teal);}
+.verdict-review{background:rgba(245,183,49,.1);border:1px solid rgba(245,183,49,.25);color:var(--gold);}
+.verdict-reject{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.25);color:var(--red);}
+
+.factor-list{display:flex;flex-direction:column;gap:11px;}
+.factor-item{display:flex;flex-direction:column;gap:5px;}
+.factor-header{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.factor-name{font-size:12px;color:var(--text);flex:1;}
+.factor-score{font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap;}
+.factor-bar-bg{height:5px;border-radius:3px;background:var(--bg3);border:1px solid var(--border);overflow:hidden;}
+.factor-bar-fill{height:100%;border-radius:3px;transition:width 1.2s ease;}
+.bar-green{background:var(--teal);}.bar-yellow{background:var(--gold);}.bar-red{background:var(--red);}
+.score-green{background:rgba(0,201,167,.12);color:var(--teal);}
+.score-yellow{background:rgba(245,183,49,.12);color:var(--gold);}
+.score-red{background:rgba(255,107,107,.12);color:var(--red);}
+
+.risk-tags{display:flex;flex-wrap:wrap;gap:7px;}
+.risk-tag{display:flex;align-items:flex-start;gap:6px;padding:7px 11px;border-radius:var(--r);font-size:11px;font-weight:500;line-height:1.4;}
+.tag-red{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);color:#ff9a9a;}
+.tag-yellow{background:rgba(245,183,49,.08);border:1px solid rgba(245,183,49,.2);color:var(--gold2);}
+.tag-green{background:rgba(0,201,167,.08);border:1px solid rgba(0,201,167,.2);color:#66e5d0;}
+
+.explain-box{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:var(--r);padding:14px;font-size:13px;line-height:1.75;color:var(--text2);}
+.explain-meta{margin-top:10px;font-size:10px;color:var(--text3);display:flex;align-items:center;gap:5px;}
+
+.score-meta-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
+@media(min-width:480px){.score-meta-grid{grid-template-columns:repeat(4,1fr);}}
+.meta-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;}
+.meta-val{font-size:18px;font-weight:700;font-family:var(--mono);}
+.meta-label{font-size:10px;color:var(--text2);margin-top:3px;}
+
+.decision-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
+.decision-btn{padding:10px 8px;border-radius:var(--r);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);transition:all .2s;text-align:center;}
+.decision-btn.sel-approve{background:rgba(0,201,167,.1);border-color:rgba(0,201,167,.3);color:var(--teal);}
+.decision-btn.sel-review{background:rgba(245,183,49,.1);border-color:rgba(245,183,49,.3);color:var(--gold);}
+.decision-btn.sel-reject{background:rgba(255,107,107,.1);border-color:rgba(255,107,107,.3);color:var(--red);}
+.expert-locked{background:rgba(72,149,239,.06);border:1px solid rgba(72,149,239,.2);border-radius:var(--r);padding:14px;font-size:13px;color:#90c4ff;text-align:center;}
+
+.alert{padding:11px 14px;border-radius:var(--r);font-size:12px;display:flex;align-items:flex-start;gap:9px;margin-bottom:14px;}
+.alert-info{background:rgba(72,149,239,.08);border:1px solid rgba(72,149,239,.2);color:#90c4ff;}
+.alert-warn{background:rgba(245,183,49,.08);border:1px solid rgba(245,183,49,.2);color:var(--gold2);}
+.alert-success{background:rgba(0,201,167,.08);border:1px solid rgba(0,201,167,.2);color:#66e5d0;}
+.alert-icon{flex-shrink:0;margin-top:1px;}
+
+.info-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.info-chip{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:var(--bg3);border:1px solid var(--border);font-size:10px;color:var(--text2);}
+.chip-val{color:var(--text);font-weight:500;}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0;}
+.result-main{display:grid;grid-template-columns:220px 1fr;gap:14px;margin-bottom:14px;}
+@media(max-width:600px){.result-main{grid-template-columns:1fr;}}
+.breakdown-table{width:100%;border-collapse:collapse;font-size:12px;}
+.breakdown-table tr{border-bottom:1px solid var(--border);}
+.breakdown-table tr:last-child{border-bottom:none;}
+.breakdown-table td{padding:8px 0;vertical-align:middle;}
+.score-max{color:var(--text3);font-size:10px;font-weight:400;}
+
+/* SHORTLIST */
+.shortlist-table{width:100%;border-collapse:collapse;font-size:12px;}
+.shortlist-table thead tr{border-bottom:2px solid var(--border2);}
+.shortlist-table th{padding:10px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;}
+.shortlist-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.shortlist-table tbody tr{cursor:pointer;transition:background .15s;}
+.shortlist-table tbody tr:hover{background:var(--bg3);}
+.sl-score-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-family:var(--mono);font-size:12px;font-weight:700;}
+.sl-approve{background:rgba(0,201,167,.12);color:var(--teal);}
+.sl-review{background:rgba(245,183,49,.12);color:var(--gold);}
+.sl-reject{background:rgba(255,107,107,.12);color:var(--red);}
+.sl-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 10px;border-radius:20px;}
+.sl-pending{background:var(--bg3);border:1px solid var(--border);color:var(--text2);}
+.sl-done{background:rgba(0,201,167,.08);border:1px solid rgba(0,201,167,.2);color:var(--teal);}
+.sl-rejected{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);color:var(--red);}
+.sl-priority-high{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(72,149,239,.12);border:1px solid rgba(72,149,239,.3);color:var(--blue);}
+.sl-priority-mid{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:var(--bg3);border:1px solid var(--border);color:var(--text2);}
+.sl-npa-flag{display:inline-flex;align-items:center;gap:3px;font-size:10px;color:var(--red);}
+.shortlist-filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.sl-filter{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);transition:all .2s;}
+.sl-filter.active{background:rgba(245,183,49,.1);border-color:rgba(245,183,49,.3);color:var(--gold);}
+
+/* NPA */
+.npa-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:14px;}
+.npa-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.npa-badge-ok{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;background:rgba(0,201,167,.1);border:1px solid rgba(0,201,167,.25);color:var(--teal);font-size:12px;font-weight:600;}
+.npa-badge-fail{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.25);color:var(--red);font-size:12px;font-weight:600;}
+.npa-badge-warn{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;background:rgba(245,183,49,.1);border:1px solid rgba(245,183,49,.25);color:var(--gold);font-size:12px;font-weight:600;}
+.npa-list{display:flex;flex-direction:column;gap:9px;}
+.npa-item{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-radius:var(--r);font-size:12px;line-height:1.6;}
+.npa-critical{background:rgba(255,107,107,.07);border:1px solid rgba(255,107,107,.2);color:#ffaaaa;}
+.npa-warning{background:rgba(245,183,49,.07);border:1px solid rgba(245,183,49,.2);color:var(--gold2);}
+.npa-ok{background:rgba(0,201,167,.07);border:1px solid rgba(0,201,167,.2);color:#66e5d0;}
+.npa-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+.npa-rule{font-size:10px;opacity:.7;margin-top:3px;}
+.npa-penalty-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:4px;background:rgba(255,107,107,.15);color:#ff9a9a;font-size:10px;font-weight:600;font-family:var(--mono);margin-left:8px;}
+.npa-norm-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;font-size:11px;}
+.npa-norm-cell{background:rgba(0,0,0,.15);border-radius:6px;padding:7px 10px;}
+.npa-norm-label{color:var(--text3);margin-bottom:2px;}
+.npa-norm-val{font-family:var(--mono);font-weight:600;}
+.npa-total-penalty{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 14px;background:rgba(255,107,107,.05);border:1px solid rgba(255,107,107,.15);border-radius:var(--r);font-size:12px;color:#ffaaaa;}
+.npa-penalty-big{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--red);}
+.region-norm-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;background:rgba(72,149,239,.08);border:1px solid rgba(72,149,239,.2);font-size:10px;color:#90c4ff;margin-top:6px;}
+
+/* COMPARE */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:var(--r);overflow:hidden;border:1px solid var(--border);}
+.compare-col{padding:14px;}
+.compare-col:first-child{background:rgba(72,149,239,.04);border-right:1px solid var(--border);}
+.compare-col:last-child{background:rgba(245,183,49,.04);}
+.compare-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;}
+.compare-row{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.compare-row:last-child{margin-bottom:0;}
+.compare-label{font-size:10px;color:var(--text3);}
+.compare-bar-wrap{display:flex;align-items:center;gap:8px;}
+.compare-bar-bg{flex:1;height:4px;border-radius:2px;background:var(--bg3);overflow:hidden;}
+.compare-bar-fill{height:100%;border-radius:2px;}
+.compare-val{font-family:var(--mono);font-size:11px;font-weight:600;min-width:30px;text-align:right;}
+
+/* HUMAN VERDICT */
+.human-verdict{padding:16px;border-radius:var(--r2);margin-bottom:0;}
+.human-verdict-approve{background:rgba(0,201,167,.06);border:1px solid rgba(0,201,167,.2);}
+.human-verdict-review{background:rgba(245,183,49,.06);border:1px solid rgba(245,183,49,.2);}
+.human-verdict-reject{background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.2);}
+.hv-title{font-size:14px;font-weight:700;margin-bottom:8px;}
+.hv-approve{color:var(--teal);}.hv-review{color:var(--gold);}.hv-reject{color:var(--red);}
+.hv-body{font-size:13px;line-height:1.7;color:var(--text2);}
+.hv-factor{display:inline;font-weight:600;color:var(--text);}
+
+/* FRAUD */
+.fraud-list{display:flex;flex-direction:column;gap:9px;}
+.fraud-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:var(--r);font-size:12px;}
+.fraud-ok{background:rgba(0,201,167,.06);border:1px solid rgba(0,201,167,.15);color:#66e5d0;}
+.fraud-fail{background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.15);color:#ff9a9a;}
+.fraud-warn{background:rgba(245,183,49,.06);border:1px solid rgba(245,183,49,.15);color:var(--gold2);}
+.fraud-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.fraud-label{font-weight:600;margin-right:4px;}
+
+/* EDS MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:28px;width:100%;max-width:420px;position:relative;}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:10px;}
+.modal-sub{font-size:12px;color:var(--text2);margin-bottom:20px;}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;line-height:1;}
+.eds-field{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;font-family:var(--mono);font-size:13px;color:var(--text);width:100%;margin-bottom:14px;letter-spacing:4px;}
+.eds-info{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:6px;margin-bottom:20px;}
+.eds-cert-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:16px;}
+.eds-cert-row{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);padding:3px 0;}
+.eds-cert-val{color:var(--text);font-family:var(--mono);}
+.eds-success{text-align:center;padding:16px 0;}
+.eds-success-icon{font-size:40px;margin-bottom:10px;}
+.eds-success-title{font-size:15px;font-weight:700;color:var(--teal);margin-bottom:6px;}
+
+/* AUDIT */
+.audit-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px;font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.8;overflow-x:auto;white-space:pre-wrap;word-break:break-all;}
+.audit-key{color:var(--blue);}.audit-val-str{color:var(--teal);}.audit-val-num{color:var(--gold);}
+
+.engine-banner{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(72,149,239,.06);border:1px solid rgba(72,149,239,.15);border-radius:var(--r);margin-bottom:14px;font-size:11px;color:#90c4ff;}
+.engine-banner strong{color:var(--blue);}
+
+.fade-in{animation:fi .35s ease forwards;}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+/* ═══════════════════════════════════════════════════════════════
+   TASK 4 — PRINT STYLES
+   ═══════════════════════════════════════════════════════════════ */
+@media print {
+  body{background:#fff!important;color:#000!important;font-family:'Arial',sans-serif;font-size:12pt;}
+  .theme-btn,.role-switcher,.nav-tabs,.stepper,.btn,.btn-row,.engine-banner,
+  .fraud-list,.compare-grid,.shortlist-filters,.modal-overlay,
+  .no-print,.header-right,.role-indicator,.audit-box{display:none!important;}
+  .app{max-width:100%;padding:0;margin:0;}
+  .card,.npa-block{border:1pt solid #ccc!important;background:#fff!important;border-radius:0!important;page-break-inside:avoid;}
+  .card-title{color:#333!important;}
+  .card-title::before{background:#333!important;}
+  .print-header{display:block!important;}
+  .print-only{display:block!important;}
+  .explain-box{border:1pt solid #999!important;background:#f9f9f9!important;color:#222!important;}
+  .info-chip{border:1pt solid #ccc!important;background:#f5f5f5!important;color:#333!important;}
+  .chip-val{color:#000!important;}
+  .meta-card{border:1pt solid #ccc!important;background:#f5f5f5!important;}
+  .meta-val{color:#000!important;}
+  .meta-label{color:#555!important;}
+  .npa-critical{background:#fff0f0!important;border:1pt solid #ff9999!important;color:#cc0000!important;}
+  .npa-warning{background:#fffbe0!important;border:1pt solid #f5b731!important;color:#7a5900!important;}
+  .npa-ok{background:#f0fff8!important;border:1pt solid #00c9a7!important;color:#005a40!important;}
+  .verdict-approve{background:#f0fff8!important;border:1pt solid #00c9a7!important;color:#005a40!important;}
+  .verdict-review{background:#fffbe0!important;border:1pt solid #f5b731!important;color:#7a5900!important;}
+  .verdict-reject{background:#fff0f0!important;border:1pt solid #ff9999!important;color:#cc0000!important;}
+  .header{border-bottom:2pt solid #333!important;}
+  .score-verdict,.npa-badge-ok,.npa-badge-fail,.npa-badge-warn{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+.print-header{display:none;}
+.print-only{display:none;}
+</style>
+</head>
+<body>
+<button class="theme-btn" onclick="toggleTheme()" title="Сменить тему">🌓</button>
+
+<div class="app">
+  <!-- PRINT HEADER — visible only when printing -->
+  <div class="print-header" style="text-align:center;padding:0 0 16px;border-bottom:2pt solid #000;margin-bottom:16px;">
+    <div style="font-size:18pt;font-weight:700;margin-bottom:4px;">ЗАКЛЮЧЕНИЕ ИИ-СКОРИНГА</div>
+    <div style="font-size:11pt;color:#444;">АгроСкоринг КЗ 4.0 · Министерство сельского хозяйства РК</div>
+    <div id="print-date" style="font-size:10pt;color:#666;margin-top:4px;"></div>
+    <div style="font-size:9pt;color:#888;margin-top:4px;">НПА: Приказ МСХ РК №12488 (нормы убыли) · Приказ МСХ РК №11064 (нагрузка на пастбища)</div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-badge">
+      <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="9.5" stroke="#f5b731" stroke-width="1.5"/>
+        <circle cx="14" cy="14" r="3.5" fill="#f5b731"/>
+        <path d="M14 5v3M14 20v3M5 14h3M20 14h3" stroke="#f5b731" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M8 8l2 2M18 18l2 2M8 20l2-2M18 10l2-2" stroke="#f5b731" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h1>АгроСкоринг КЗ 4.0</h1>
+      <p>Минсельхоз РК · Decentrathon 5.0 · AI for Government</p>
+    </div>
+    <div class="role-switcher no-print">
+      <button class="role-btn active-farmer" id="btn-farmer" onclick="setRole('farmer')">👤 Фермер</button>
+      <button class="role-btn" id="btn-expert" onclick="setRole('expert')">🛡 Эксперт</button>
+    </div>
+    <div class="header-right">
+      <div class="header-badge">v4.0 ФИНАЛ</div>
+      <div id="api-status-badge" class="api-status api-offline no-print">
+        <div class="api-dot"></div><span>API офлайн</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="role-indicator" style="display:none;margin-bottom:12px;" class="no-print"></div>
+
+  <div class="nav-tabs no-print">
+    <button class="nav-tab active" id="tab-new" onclick="switchTab('new')">✏ Новая заявка</button>
+    <button class="nav-tab" id="tab-shortlist" onclick="switchTab('shortlist')">
+      📋 Шортлист <span class="nav-tab-badge" id="shortlist-count">4</span>
+    </button>
+  </div>
+
+  <div id="root"></div>
+  <div id="shortlist-root" style="display:none;"></div>
+</div>
+
+<!-- EDS MODAL -->
+<div id="eds-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this&&!edsProcessing)closeEds()">
+  <div class="modal-box fade-in"><button class="modal-close" onclick="if(!edsProcessing)closeEds()">✕</button><div id="eds-content"></div></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   TASK 1 — EXPANDED CROPS & LIVESTOCK (KZ LOCALIZATION)
+   ═══════════════════════════════════════════════════════════════ */
+
+// Priority crops: export/industrial value — highlighted in blue
+const PRIORITY_CROPS = new Set(['Лён (кудряш)','Хлопчатник','Соя','Сафлор']);
+const PRIORITY_LIVESTOCK = new Set(['Лошади племенные','Маралы (ВКО)','КРС Мясное (Ангус/Герефорд)']);
+
+const CROP_GROUPS = [
+  { label: 'Зерновые', items: ['Пшеница яровая','Пшеница озимая','Ячмень','Овёс','Кукуруза на зерно','Рис (Кызылорда)','Просо'] },
+  { label: 'Масличные (экспортные)', items: ['Подсолнечник','Рапс','Лён (кудряш)','Соя','Сафлор'], priority: true },
+  { label: 'Технические', items: ['Хлопчатник','Сахарная свёкла (Жетысу)'], priority: true },
+  { label: 'Бобовые', items: ['Нут','Чечевица','Горох'] },
+  { label: 'Кормовые', items: ['Люцерна','Кукуруза на силос'] },
+  { label: 'Овощи и бахчевые', items: ['Картофель','Томат','Бахчевые','Прочие'] },
+];
+
+const LIVESTOCK_GROUPS = [
+  { label: 'КРС', items: ['КРС Мясное (Ангус/Герефорд)','КРС Молочное'], priority: true },
+  { label: 'Мелкий скот', items: ['Овцы','Козы'] },
+  { label: 'Коневодство', items: ['Лошади мясные','Лошади племенные'], priority: true },
+  { label: 'Экзотика РК', items: ['Верблюды (бактрианы)','Верблюды (дромедары)','Маралы (ВКО)'], priority: true },
+  { label: 'Птицеводство', items: ['Куры-бройлеры','Несушки','Индейка'] },
+];
+
+// Flat lists for compatibility
+const ALL_CROPS = CROP_GROUPS.flatMap(g => g.items);
+const ALL_LIVESTOCK = LIVESTOCK_GROUPS.flatMap(g => g.items);
+
+function hasPriority(d) {
+  const cropPrio = (d.crops||[]).some(c => PRIORITY_CROPS.has(c));
+  const lsPrio   = (d.livestock||[]).some(l => PRIORITY_LIVESTOCK.has(l));
+  return cropPrio || lsPrio;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TASK 2 — REGIONAL NPA CONTEXT (pasture load by zone)
+   ═══════════════════════════════════════════════════════════════ */
+
+const REGIONAL_ZONES = {
+  // Аридные / пустынные — строже (Приказ МСХ РК №11064)
+  desert: { oblasts:['Мангистауская','Атырауская','Кызылординская','Туркестанская'], load:0.08, label:'Аридная зона', desc:'Пустынь/полупустынь — норма 0.08 гол./га (Приказ №11064)' },
+  // Лесостепь / Горные — средние нормы
+  forest: { oblasts:['Восточно-Казахстанская','Алматинская','Жетысуская','Абайская'], load:0.12, label:'Горно-степная зона', desc:'Горно-степная — норма 0.12 гол./га (Приказ №11064)' },
+  // Северные степи — мягче
+  steppe: { oblasts:['Костанайская','Северо-Казахстанская','Акмолинская','Павлодарская','Западно-Казахстанская'], load:0.20, label:'Степная зона', desc:'Степь — норма 0.20 гол./га (Приказ №11064)' },
+};
+
+function getRegionalPastureNorm(oblast) {
+  for (const [, zone] of Object.entries(REGIONAL_ZONES)) {
+    if (zone.oblasts.includes(oblast)) return zone;
+  }
+  return { load: 0.15, label:'Стандартная норма', desc:'Базовая норма 0.15 гол./га (Приказ №11064)' };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NPA ENGINE v4.0 — Приказы МСХ РК №12488 и №11064
+   ═══════════════════════════════════════════════════════════════ */
+const NPA = {
+  MAX_MORTALITY_RATE: 0.025, // Приказ МСХ РК №12488
+  PENALTY_MORTALITY:  35,
+  PENALTY_PASTURE:    30,
+  PENALTY_NO_IAS:     10,
+
+  check(d) {
+    const violations=[], warnings=[], bonuses=[];
+    let penalty=0;
+    const total   = +d.totalLivestock||0;
+    const dead    = +d.deadAnimalsYear||0;
+    const pasture = +d.pastureHectares||0;
+    const ias     = d.hasIasRegistration;
+    const hasLivestock = total>0 || (d.livestock||[]).length>0;
+
+    // Check 1: Mortality — Приказ МСХ РК №12488
+    if(total > 0) {
+      const rate = dead / total;
+      if(rate > this.MAX_MORTALITY_RATE) {
+        const pct = (rate*100).toFixed(1);
+        violations.push({
+          level:'critical', code:'MORTALITY_EXCESS',
+          rule:'Приказ МСХ РК №12488',
+          penalty: this.PENALTY_MORTALITY,
+          norm:`${(this.MAX_MORTALITY_RATE*100).toFixed(1)}%`,
+          actual:`${pct}%`,
+          message:`Превышение нормы естественной убыли: фактически ${pct}%, норма — не более ${(this.MAX_MORTALITY_RATE*100).toFixed(1)}%.`
+        });
+        penalty += this.PENALTY_MORTALITY;
+      } else {
+        bonuses.push(`Уровень падежа ${(dead/total*100).toFixed(2)}% — в пределах нормы ≤${(this.MAX_MORTALITY_RATE*100).toFixed(1)}% (Приказ №12488)`);
+      }
+    } else if(hasLivestock && dead>0) {
+      warnings.push({level:'warning',code:'HEADCOUNT_MISSING',message:'Указаны павшие животные, но общее поголовье не введено.'});
+    }
+
+    // Check 2: Pasture load — Приказ МСХ РК №11064 (REGIONAL)
+    const regionZone = getRegionalPastureNorm(d.oblast);
+    const MAX_LOAD = regionZone.load;
+    if(pasture > 0 && total > 0) {
+      const load = total / pasture;
+      if(load > MAX_LOAD) {
+        violations.push({
+          level:'critical', code:'PASTURE_OVERLOAD',
+          rule:`Приказ МСХ РК №11064 · ${regionZone.label}`,
+          penalty: this.PENALTY_PASTURE,
+          norm:`${MAX_LOAD} гол./га`,
+          actual:`${load.toFixed(3)} гол./га`,
+          regionNote: regionZone.desc,
+          message:`Риск деградации почв: нагрузка ${load.toFixed(2)} гол./га, норма для региона — не более ${MAX_LOAD} гол./га.`
+        });
+        penalty += this.PENALTY_PASTURE;
+      } else {
+        bonuses.push(`Нагрузка на пастбища ${load.toFixed(2)} гол./га — в норме ≤${MAX_LOAD} (${regionZone.label}, Приказ №11064)`);
+      }
+    } else if(total > 0 && pasture === 0) {
+      warnings.push({level:'warning',code:'PASTURE_MISSING',message:`Указано поголовье, но площадь пастбищ не введена. Норма для ${d.oblast||'вашего региона'}: ${MAX_LOAD} гол./га (Приказ №11064).`});
+    }
+
+    // Check 3: ИСЖ/ИАС
+    if(hasLivestock) {
+      if(!ias) {
+        warnings.push({
+          level:'warning', code:'NO_IAS',
+          rule:'Правила субсидирования животноводства МСХ РК',
+          penalty: this.PENALTY_NO_IAS,
+          message:'Хозяйство не зарегистрировано в ИСЖ/ИАС. Обязательное условие для субсидий на животноводство.'
+        });
+        penalty += this.PENALTY_NO_IAS;
+      } else {
+        bonuses.push('Зарегистрировано в ИСЖ/ИАС — соответствует требованиям субсидирования');
+      }
+    }
+
+    return { violations, warnings, bonuses, penalty, allPassed: violations.length===0 && warnings.filter(w=>w.penalty).length===0 };
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   TASK 3 — LIVE SHORTLIST WITH DEMO GENERATION
+   ═══════════════════════════════════════════════════════════════ */
+let SHORTLIST_DATA = [
+  { id:'SB-2024-001', name:'ТОО «Астык Нан»',     oblast:'Костанайская',  hectares:1200, score:84, verdict:'approve', status:'done',     crops:['Пшеница яровая','Ячмень'],      livestock:['КРС Мясное (Ангус/Герефорд)'], employees:32, revenue:185000, npaViolations:0 },
+  { id:'SB-2024-002', name:'КФХ Серікбаев А.Д.',  oblast:'Акмолинская',   hectares:380,  score:71, verdict:'approve', status:'pending',   crops:['Рапс','Лён (кудряш)'],           livestock:[], employees:8, revenue:62000, npaViolations:0 },
+  { id:'SB-2024-003', name:'ИП «Байтерек Агро»',  oblast:'Алматинская',   hectares:95,   score:48, verdict:'review',  status:'pending',   crops:['Картофель','Томат'],             livestock:['Лошади племенные'], employees:12, revenue:28000, npaViolations:1 },
+  { id:'SB-2024-004', name:'КФХ Мұхамедов Е.',    oblast:'Мангистауская', hectares:60,   score:22, verdict:'reject',  status:'rejected',  crops:['Пшеница яровая'],                livestock:['Верблюды (бактрианы)'], employees:2, revenue:4500, npaViolations:2 },
+];
+let slFilter = 'all';
+
+// Helper: compute priority for a shortlist row
+function getSlPriority(row) {
+  const pCrop = (row.crops||[]).some(c => PRIORITY_CROPS.has(c));
+  const pLs   = (row.livestock||[]).some(l => PRIORITY_LIVESTOCK.has(l));
+  return (pCrop || pLs) ? 'high' : 'mid';
+}
+
+// TASK 3: Generate 10 random demo applications
+function generateDemoData() {
+  const demoNames = [
+    'ТОО «Алтай Агро»','КФХ Бекова М.','ИП «Жер Нан»','ТОО «КазАгро-Плюс»',
+    'КФХ Абилов Д.С.','ИП «Дала Мал»','ТОО «Ертіс Агро»','КФХ Орынбаев Е.',
+    'ИП «Нұр Дала»','ТОО «Степной Дом»','КФХ Сейткали А.','ТОО «ЮжКормПром»',
+  ];
+  const oblastList = ['Акмолинская','Костанайская','Северо-Казахстанская','Алматинская','Туркестанская','Мангистауская','Павлодарская','Восточно-Казахстанская','Жетысуская','Кызылординская'];
+  const cropSamples = [['Пшеница яровая','Ячмень'],['Рапс','Лён (кудряш)'],['Хлопчатник'],['Нут','Горох'],['Кукуруза на зерно','Подсолнечник'],['Маралы (ВКО)'],['Рис (Кызылорда)'],['Люцерна','Кукуруза на силос'],['Соя','Сафлор'],['Картофель','Томат']];
+  const lsSamples   = [[],['КРС Мясное (Ангус/Герефорд)'],['Овцы','Козы'],['Лошади племенные'],['Верблюды (бактрианы)'],['Маралы (ВКО)'],['Несушки','Куры-бройлеры'],[],['КРС Молочное'],['Лошади мясные']];
+  const statuses    = ['pending','pending','pending','done','rejected'];
+  const rng = () => Math.random();
+
+  SHORTLIST_DATA = SHORTLIST_DATA.slice(0,4); // keep originals
+  for (let i=0; i<10; i++) {
+    const score   = Math.floor(rng()*80 + 5);
+    const verdict = score>=65?'approve':score>=40?'review':'reject';
+    const npaV    = rng() < 0.3 ? Math.floor(rng()*2)+1 : 0;
+    const crops   = cropSamples[i % cropSamples.length];
+    const ls      = lsSamples[i % lsSamples.length];
+    SHORTLIST_DATA.push({
+      id: `SB-DEMO-${String(i+1).padStart(3,'0')}`,
+      name: demoNames[i % demoNames.length],
+      oblast: oblastList[i % oblastList.length],
+      hectares: Math.floor(rng()*2000+20),
+      score, verdict,
+      status: statuses[Math.floor(rng()*statuses.length)],
+      crops, livestock: ls,
+      employees: Math.floor(rng()*50+1),
+      revenue: Math.floor(rng()*200000+3000),
+      npaViolations: npaV,
+    });
+  }
+  document.getElementById('shortlist-count').textContent = SHORTLIST_DATA.length;
+  renderShortlist();
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-new').className = 'nav-tab' + (tab==='new'?' active':'');
+  document.getElementById('tab-shortlist').className = 'nav-tab' + (tab==='shortlist'?' active':'');
+  document.getElementById('root').style.display = tab==='new' ? '' : 'none';
+  document.getElementById('shortlist-root').style.display = tab==='shortlist' ? '' : 'none';
+  if (tab==='shortlist') renderShortlist();
+}
+
+function renderShortlist() {
+  const filtered = slFilter==='all' ? SHORTLIST_DATA : SHORTLIST_DATA.filter(r=>r.verdict===slFilter);
+  const sorted   = [...filtered].sort((a,b)=>b.score-a.score);
+
+  const statusHTML = s => ({
+    pending:  '<span class="sl-status sl-pending">⏳ Ожидает</span>',
+    done:     '<span class="sl-status sl-done">✓ Одобрено</span>',
+    rejected: '<span class="sl-status sl-rejected">✗ Отклонено</span>',
+  }[s] || '');
+
+  const priorityHTML = row => {
+    const p = getSlPriority(row);
+    return p==='high'
+      ? '<span class="sl-priority-high">⭐ Высокий</span>'
+      : '<span class="sl-priority-mid">— Средний</span>';
+  };
+
+  document.getElementById('shortlist-root').innerHTML = `<div class="fade-in">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:15px;font-weight:700">Шортлист заявок</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">${SHORTLIST_DATA.length} заявок · сортировка по Score ↓</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-blue" style="padding:8px 14px;font-size:12px" onclick="generateDemoData()">🔀 Сгенерировать демо-данные</button>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:12px" onclick="switchTab('new');S.step=1;render()">+ Новая заявка</button>
+      </div>
+    </div>
+    <div class="shortlist-filters">
+      ${[['all','Все'],['approve','Рекомендованы'],['review','На проверке'],['reject','Отклонены']].map(([v,l])=>
+        `<div class="sl-filter ${slFilter===v?'active':''}" onclick="slFilter='${v}';renderShortlist()">${l}</div>`
+      ).join('')}
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;overflow-x:auto;">
+      <table class="shortlist-table">
+        <thead><tr>
+          <th>ID</th><th>Заявитель</th><th>Область</th><th>га</th><th>Score</th>
+          <th>Приоритет</th><th>НПА</th><th>Статус</th>
+        </tr></thead>
+        <tbody>
+          ${sorted.map(row=>`<tr onclick="loadShortlistItem('${row.id}')">
+            <td><span style="font-family:var(--mono);font-size:10px;color:var(--text3)">${row.id}</span></td>
+            <td><div style="font-weight:500">${row.name}</div><div style="font-size:10px;color:var(--text3)">${(row.crops||[]).slice(0,2).join(', ')||'—'}</div></td>
+            <td style="color:var(--text2);font-size:11px">${row.oblast}</td>
+            <td style="font-family:var(--mono)">${row.hectares.toLocaleString('ru')}</td>
+            <td><span class="sl-score-pill sl-${row.verdict}">${row.score}</span></td>
+            <td>${priorityHTML(row)}</td>
+            <td>${row.npaViolations>0?`<span class="sl-npa-flag">⚠ ${row.npaViolations}</span>`:'<span style="color:var(--teal);font-size:11px">✓</span>'}</td>
+            <td>${statusHTML(row.status)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="alert alert-info" style="margin-top:12px">
+      <span class="alert-icon">ℹ</span>
+      <span>⭐ Высокий приоритет — заявки с племенным животноводством или экспортными культурами (Лён, Хлопок, Соя, Сафлор). «🔀 Сгенерировать» добавит 10 случайных заявок.</span>
+    </div>
+  </div>`;
+}
+
+function loadShortlistItem(id) {
+  const item = SHORTLIST_DATA.find(r=>r.id===id);
+  if(!item) return;
+  const f=Math.round(item.score*.27),p=Math.round(item.score*.22),r2=Math.round(item.score*.20),c=Math.round(item.score*.18);
+  const sv=item.score-f-p-r2-c;
+  S.d = {
+    iin:id, name:item.name, oblast:item.oblast, farmType:'llc',
+    hectares:item.hectares, yearsOp:5,
+    crops:item.crops||[], livestock:item.livestock||[],
+    irrigated:true, ownLand:true, certifiedSeeds:true,
+    employees:item.employees, equipment:60,
+    revenue:item.revenue, creditScore:Math.min(100,item.score+10),
+    subsidyHistory:'once', loans:'good', taxStatus:'compliant',
+    documents:['doc_land','doc_reg','doc_tax','doc_report'],
+    totalLivestock: item.npaViolations>0?120:50,
+    deadAnimalsYear: item.npaViolations>0?10:1,
+    pastureHectares: item.npaViolations>0?40:400,
+    hasIasRegistration: item.npaViolations===0,
+  };
+  S.result = {
+    score:item.score,
+    scoreBlocks:{f,p,r:r2,c,s:sv},
+    factors:[
+      {name:'Финансовая состоятельность',raw:f,max:25,impact:f-12,weight:Math.round(f/25*100)},
+      {name:'Производственный потенциал',raw:p,max:20,impact:p-10,weight:Math.round(p/20*100)},
+      {name:'Надёжность и история',raw:r2,max:20,impact:r2-10,weight:Math.round(r2/20*100)},
+      {name:'Документы и соответствие',raw:c,max:20,impact:c-10,weight:Math.round(c/20*100)},
+      {name:'Социально-экономический эффект',raw:sv,max:15,impact:sv-7,weight:Math.round(sv/15*100)},
+    ],
+    risks: ScoringEngine.detectRisks(S.d,{total:item.score}),
+    explanation: ScoringEngine.generateExplanation(S.d,{f,p,r:r2,c,s:sv,total:item.score}),
+    engineLabel:'Шортлист · v4.0',
+    npaResult: NPA.check(S.d),
+  };
+  S.expertDecision=null; S.expertNote='';
+  S.step='results';
+  switchTab('new');
+  render();
+  window.scrollTo(0,0);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   API STATUS
+   ═══════════════════════════════════════════════════════════════ */
+const API_BASE = 'http://localhost:8000';
+async function checkApiStatus(){
+  try{
+    const res=await fetch(`${API_BASE}/health`,{signal:AbortSignal.timeout(2000)});
+    const data=await res.json();
+    const badge=document.getElementById('api-status-badge');
+    if(res.ok){badge.className='api-status api-online';badge.innerHTML=`<div class="api-dot"></div><span>${data.model_trained?'API · ML активен':'API · правила'}</span>`;}
+  }catch{}
+}
+checkApiStatus();
+setInterval(checkApiStatus,15000);
+
+/* ═══════════════════════════════════════════════════════════════
+   SCORING ENGINE
+   ═══════════════════════════════════════════════════════════════ */
+const ScoringEngine = {
+  scoreFinancial(d){
+    let s=0;
+    if(d.revenue>=100000)s+=8;else if(d.revenue>=50000)s+=6;else if(d.revenue>=20000)s+=4;else if(d.revenue>=5000)s+=2;
+    s+=Math.round((d.creditScore/100)*7);
+    s+={none:5,good:5,delayed:2,bad:0}[d.loans]??3;
+    s+={compliant:5,minor:2,major:0}[d.taxStatus]??2;
+    return Math.min(25,s);
+  },
+  scoreProduction(d){
+    let s=0;
+    if(d.hectares>=1000)s+=5;else if(d.hectares>=300)s+=4;else if(d.hectares>=100)s+=3;else if(d.hectares>=30)s+=2;else s+=1;
+    s+=Math.min(4,d.crops.length);
+    if(d.irrigated)s+=2;if(d.ownLand)s+=2;if(d.certifiedSeeds)s+=2;
+    if(d.equipment>=100)s+=3;else if(d.equipment>=50)s+=2;else if(d.equipment>=10)s+=1;
+    if(d.livestock.length>=2)s+=2;else if(d.livestock.length===1)s+=1;
+    // Priority crops bonus
+    if(hasPriority(d)) s+=2;
+    return Math.min(20,s);
+  },
+  scoreReliability(d){
+    let s=0;
+    if(d.yearsOp>=10)s+=8;else if(d.yearsOp>=5)s+=6;else if(d.yearsOp>=3)s+=4;else if(d.yearsOp>=1)s+=2;
+    s+={none:4,once:6,regular:7,violations:0}[d.subsidyHistory]??3;
+    s+=5;
+    return Math.min(20,s);
+  },
+  scoreCompliance(d){
+    let s=0;
+    const dw={doc_land:4,doc_reg:3,doc_tax:3,doc_report:3,doc_insurance:2,doc_plan:2};
+    d.documents.forEach(doc=>{s+=dw[doc]||0;});
+    if(d.taxStatus==='compliant')s+=4;else if(d.taxStatus==='minor')s+=2;
+    if(d.subsidyHistory!=='violations')s+=2;
+    return Math.min(20,s);
+  },
+  scoreSocial(d){
+    let s=0;
+    if(d.employees>=50)s+=5;else if(d.employees>=20)s+=4;else if(d.employees>=10)s+=3;else if(d.employees>=3)s+=2;else s+=1;
+    s+=Math.min(5,d.crops.length+d.livestock.length);
+    const pri=['Костанайская','Северо-Казахстанская','Акмолинская','Алматинская','Туркестанская'];
+    if(pri.includes(d.oblast))s+=5;else if(d.oblast)s+=3;
+    return Math.min(15,s);
+  },
+
+  detectRisks(d,blocks){
+    const risks=[];
+    if(d.taxStatus==='major') risks.push({level:'red',text:'Крупная налоговая задолженность — блокирующее условие (п. 4 Правил субсидирования МСХ РК)'});
+    if(d.subsidyHistory==='violations') risks.push({level:'red',text:'Нарушения при прошлом субсидировании — проверка через Qoldau.kz'});
+    if(d.loans==='bad') risks.push({level:'red',text:'Проблемная кредитная история — высокий риск невозврата средств'});
+    if(d.documents&&d.documents.length<2) risks.push({level:'red',text:'Критически неполный пакет документов'});
+    if(d.yearsOp<2) risks.push({level:'yellow',text:'Менее 2 лет деятельности — повышенный риск нецелевого использования'});
+    if(!d.ownLand) risks.push({level:'yellow',text:'Земля не в собственности — требуется подтверждение аренды'});
+    if(d.hectares>500&&d.employees<5) risks.push({level:'yellow',text:`Несоответствие площади (${d.hectares} га) и числа работников (${d.employees})`});
+    const dry=['Мангистауская','Атырауская','Кызылординская'];
+    if(dry.includes(d.oblast)&&d.crops&&d.crops.some(c=>c.includes('Пшеница'))&&!d.irrigated)
+      risks.push({level:'yellow',text:`Пшеница без орошения в аридной зоне (${d.oblast})`});
+    if(d.certifiedSeeds&&d.irrigated) risks.push({level:'green',text:'Сертифицированные семена + орошение — высокий агрономический потенциал'});
+    if((blocks.total||0)>=75) risks.push({level:'green',text:'Высокий итоговый балл — рекомендован приоритетный порядок рассмотрения'});
+    if(hasPriority(d)) risks.push({level:'green',text:'Приоритетные культуры/животные — повышенная социально-экономическая ценность'});
+    return risks.slice(0,5);
+  },
+
+  generateExplanation(d,ctx){
+    const{f,p,r,c,s,total}=ctx;
+    const name=d.name||'Заявитель';
+    const v=total>=65?'соответствует критериям одобрения':total>=40?'находится в зоне условного одобрения':'не соответствует базовым критериям';
+    const sp=[],wp=[];
+    if(f>=18)sp.push('высокая финансовая устойчивость ('+f+'/25)');else if(f<10)wp.push('слабые финансовые показатели ('+f+'/25)');
+    if(p>=15)sp.push('развитый производственный потенциал ('+p+'/20)');else if(p<8)wp.push('ограниченный производственный потенциал ('+p+'/20)');
+    if(r>=15)sp.push('надёжная история взаимодействия с господдержкой ('+r+'/20)');else if(r<8)wp.push('недостаточный срок деятельности или нарушения ('+r+'/20)');
+    if(c>=15)sp.push('полный пакет документов ('+c+'/20)');else if(c<8)wp.push('неполная документация ('+c+'/20)');
+    if(s>=10)sp.push('значимый социально-экономический эффект ('+s+'/15)');
+    if(hasPriority(d))sp.push('приоритетные экспортные культуры или племенное животноводство');
+    let txt=`${name} ${v} — итоговый балл: ${total}/100.`;
+    if(sp.length)txt+=` Положительные факторы: ${sp.join('; ')}.`;
+    if(wp.length)txt+=` Факторы снижения балла: ${wp.join('; ')}.`;
+    if(total>=65)txt+=` Рекомендация модели: одобрить.`;
+    else if(total>=40)txt+=` Рекомендация модели: условное одобрение при устранении замечаний.`;
+    else txt+=` Рекомендация модели: отклонить и рекомендовать повторную подачу.`;
+    txt+=' ⚠ Вывод является рекомендацией модели и не заменяет решение эксперта.';
+    return txt;
+  },
+
+  async calculate(d){
+    const TAX_MAP={compliant:0,minor:1,major:2};
+    const SUB_MAP={none:0,once:1,regular:2,violations:3};
+    const LOAN_MAP={none:0,good:0,delayed:1,bad:2};
+    const PRI=['Костанайская','Северо-Казахстанская','Акмолинская','Алматинская','Туркестанская'];
+    const payload={
+      iin:d.iin||'',name:d.name||'Заявитель',
+      revenue_k_tenge:+d.revenue||0,hectares:+d.hectares||0,years_operating:+d.yearsOp||0,
+      credit_score:+d.creditScore||0,num_employees:+d.employees||0,equipment_value_m:+d.equipment||0,
+      num_crops:(d.crops||[]).length,num_livestock_types:(d.livestock||[]).length,
+      has_irrigation:d.irrigated?1:0,owns_land:d.ownLand?1:0,certified_seeds:d.certifiedSeeds?1:0,
+      tax_status_enc:TAX_MAP[d.taxStatus]??0,subsidy_history_enc:SUB_MAP[d.subsidyHistory]??0,
+      loan_history_enc:LOAN_MAP[d.loans]??0,num_documents:(d.documents||[]).length,
+      oblast_priority:PRI.includes(d.oblast)?1:0,
+      total_livestock:+d.totalLivestock||0,dead_animals_year:+d.deadAnimalsYear||0,
+      pasture_hectares:+d.pastureHectares||0,has_ias_registration:d.hasIasRegistration?1:0,
+    };
+    let apiResult=null;
+    try{
+      const resp=await fetch(`${API_BASE}/score`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(8000)});
+      if(!resp.ok)throw new Error(`HTTP ${resp.status}`);
+      apiResult=await resp.json();
+    }catch(err){console.warn('[АгроСкоринг] API недоступен:',err.message);}
+
+    if(apiResult){
+      const blk=apiResult.score_blocks||{};
+      const scoreBlocks={f:blk.financial?.raw??0,p:blk.production?.raw??0,r:blk.reliability?.raw??0,c:blk.compliance?.raw??0,s:blk.social?.raw??0};
+      const factors=(apiResult.shap_factors||[]).length>0
+        ?(apiResult.shap_factors||[]).map(f=>({name:f.name,raw:Math.round(Math.abs(f.impact)),max:100,impact:Math.round(f.impact),weight:Math.min(100,Math.abs(Math.round(f.impact)))}))
+        :[
+          {name:'Финансовая состоятельность',raw:scoreBlocks.f,max:25,impact:scoreBlocks.f-12,weight:Math.round(scoreBlocks.f/25*100)},
+          {name:'Производственный потенциал',raw:scoreBlocks.p,max:20,impact:scoreBlocks.p-10,weight:Math.round(scoreBlocks.p/20*100)},
+          {name:'Надёжность и история',raw:scoreBlocks.r,max:20,impact:scoreBlocks.r-10,weight:Math.round(scoreBlocks.r/20*100)},
+          {name:'Документы и соответствие',raw:scoreBlocks.c,max:20,impact:scoreBlocks.c-10,weight:Math.round(scoreBlocks.c/20*100)},
+          {name:'Социально-экономический эффект',raw:scoreBlocks.s,max:15,impact:scoreBlocks.s-7,weight:Math.round(scoreBlocks.s/15*100)},
+        ];
+      return{score:apiResult.score,scoreBlocks,factors,risks:this.detectRisks(d,{total:apiResult.score}),explanation:apiResult.explanation,engineLabel:apiResult.engine_used||'FastAPI · XGBoost + SHAP',npaResult:apiResult.npa_result||NPA.check(d)};
+    }
+
+    const f=this.scoreFinancial(d),p=this.scoreProduction(d),r=this.scoreReliability(d),c=this.scoreCompliance(d),sv=this.scoreSocial(d);
+    const baseTotal=f+p+r+c+sv;
+    const npaResult=NPA.check(d);
+    const total=Math.max(0,baseTotal-npaResult.penalty);
+    const factors=[
+      {name:'Финансовая состоятельность',raw:f,max:25,impact:f-12,weight:Math.round(f/25*100)},
+      {name:'Производственный потенциал',raw:p,max:20,impact:p-10,weight:Math.round(p/20*100)},
+      {name:'Надёжность и история',raw:r,max:20,impact:r-10,weight:Math.round(r/20*100)},
+      {name:'Документы и соответствие',raw:c,max:20,impact:c-10,weight:Math.round(c/20*100)},
+      {name:'Социально-экономический эффект',raw:sv,max:15,impact:sv-7,weight:Math.round(sv/15*100)},
+    ];
+    if(npaResult.penalty>0) factors.push({name:'Соответствие НПА МСХ РК',raw:0,max:100,impact:-npaResult.penalty,weight:npaResult.penalty});
+    return{score:total,scoreBlocks:{f,p,r,c,s:sv},factors,risks:this.detectRisks(d,{f,p,r,c,s:sv,total}),explanation:this.generateExplanation(d,{f,p,r,c,s:sv,total}),engineLabel:'Локальный движок v4.0',npaResult};
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   ANTI-FRAUD
+   ═══════════════════════════════════════════════════════════════ */
+function runAntiFraud(d){
+  const checks=[];
+  const iinValid=/^\d{12}$/.test(d.iin);
+  checks.push({ok:iinValid,warn:false,label:'Формат ИИН/БИН',desc:iinValid?`${d.iin} — 12 цифр, корректен`:'ИИН должен содержать ровно 12 цифр'});
+  const dry=['Мангистауская','Атырауская','Кызылординская'];
+  const inDry=dry.includes(d.oblast);
+  const aridRisk=inDry&&d.crops.some(c=>c.includes('Пшеница'))&&!d.irrigated;
+  checks.push({ok:!aridRisk,warn:inDry&&!aridRisk,label:'Климатическая зона',desc:aridRisk?`Пшеница без орошения в аридной зоне (${d.oblast})`:inDry?`Аридная зона (${d.oblast}), орошение присутствует`:`Зона ${d.oblast||'—'} — стандартная`});
+  const rpe=d.employees>0?d.revenue/d.employees:0;
+  checks.push({ok:rpe<50000||d.employees>0,warn:rpe>20000&&rpe<50000,label:'Соотношение выручки/штата',desc:`${Math.round(rpe).toLocaleString('ru')} тыс. тг/чел. — ${rpe>50000?'превышение нормы':rpe>20000?'умеренное, рекомендовать уточнение':'норма'}`});
+  const techRatio=d.hectares/(d.equipment||1);
+  checks.push({ok:techRatio<30,warn:techRatio>=15&&techRatio<30,label:'Обеспеченность техникой',desc:`${d.hectares} га / ${d.equipment} млн тг — ${techRatio<15?'норма':techRatio<30?'умеренно':' недостаточно'}`});
+  const docOk=d.documents.length>=3;
+  checks.push({ok:docOk,warn:d.documents.length===2,label:'Комплектность документов',desc:`Приложено ${d.documents.length} из 6 — ${docOk?'достаточно':d.documents.length>=2?'минимально':'критически мало'}`});
+  const taxOk=d.taxStatus!=='major';
+  checks.push({ok:taxOk,warn:d.taxStatus==='minor',label:'Налоговый статус',desc:{compliant:'Без задолженностей',minor:'Мелкие задолженности — рекомендуется урегулировать',major:'Крупные долги — блокирующий признак'}[d.taxStatus]||'—'});
+  return checks;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UI STATE
+   ═══════════════════════════════════════════════════════════════ */
+const S = {
+  step:1,
+  d:{iin:'',name:'',oblast:'',farmType:'individual',hectares:80,yearsOp:4,crops:[],livestock:[],
+     irrigated:false,ownLand:true,certifiedSeeds:false,employees:6,equipment:40,
+     revenue:18000,creditScore:65,subsidyHistory:'none',loans:'none',taxStatus:'compliant',
+     documents:[],totalLivestock:0,deadAnimalsYear:0,pastureHectares:0,hasIasRegistration:false},
+  result:null,expertDecision:null,expertNote:''
+};
+
+let currentRole='farmer';
+let edsProcessing=false;
+const R=id=>document.getElementById(id);
+function toggleTheme(){document.body.classList.toggle('light-mode');}
+function toggleArr(key,val){const a=S.d[key],i=a.indexOf(val);if(i>-1)a.splice(i,1);else a.push(val);render();}
+function validateStep1(){if(!S.d.iin||!S.d.name||!S.d.oblast){alert('Заполните обязательные поля: ИИН, Наименование и Область.');return false;}return true;}
+
+function setRole(role){
+  currentRole=role;
+  const bF=document.getElementById('btn-farmer'),bE=document.getElementById('btn-expert');
+  const ind=document.getElementById('role-indicator');
+  bF.className='role-btn '+(role==='farmer'?'active-farmer':'');
+  bE.className='role-btn '+(role==='expert'?'active-expert':'');
+  if(role==='farmer'){
+    ind.style.display='block';
+    ind.innerHTML=`<div class="alert alert-info" style="margin-bottom:0"><span class="alert-icon">👤</span><span><strong>Режим Фермера.</strong> Подайте заявку и отслеживайте статус. Панель решений доступна только экспертам МСХ РК.</span></div>`;
+  } else {
+    ind.style.display='block';
+    ind.innerHTML=`<div class="alert alert-warn" style="margin-bottom:0"><span class="alert-icon">🛡</span><span><strong>Режим Эксперта.</strong> Доступны скоринг, НПА-проверки и панель решений с ЭЦП.</span></div>`;
+  }
+  if(S.step==='results') render();
+}
+
+function render(){
+  const root=R('root');
+  if(S.step===1)root.innerHTML=s1();
+  else if(S.step===2)root.innerHTML=s2();
+  else if(S.step===3)root.innerHTML=s3();
+  else if(S.step==='loading')root.innerHTML=sLoading();
+  else if(S.step==='results')root.innerHTML=sResults();
+}
+
+function stepper(){
+  const steps=['Данные','Хозяйство','Финансы'];
+  return `<div class="stepper">${steps.map((s,i)=>`
+    <div class="step ${S.step>i+1?'done':S.step===i+1?'active':''}">
+      <div class="step-num">${S.step>i+1?'✓':i+1}</div>
+      <span class="step-label">${s}</span>
+    </div>${i<2?'<div class="step-line"></div>':''}`).join('')}</div>`;
+}
+
+/* ── ШАГ 1 ── */
+function s1(){
+  const oblasts=['Абайская','Акмолинская','Актюбинская','Алматинская','Атырауская','Восточно-Казахстанская','Жамбылская','Жетысуская','Западно-Казахстанская','Карагандинская','Костанайская','Кызылординская','Мангистауская','Павлодарская','Северо-Казахстанская','Туркестанская','Улытауская'];
+  return `${stepper()}
+  <div class="engine-banner"><span>⚡</span><span><strong>АгроСкоринг 4.0</strong> — XGBoost + SHAP (FastAPI) или детерминированный движок офлайн · НПА: Приказы МСХ РК №12488 и №11064 · Региональные нормы пастбищ</span></div>
+  <div class="card fade-in">
+    <div class="card-title">Идентификация заявителя</div>
+    <div class="form-grid">
+      <div class="field"><label>ИИН / БИН<span class="req"> ★</span></label><input type="text" inputmode="numeric" placeholder="120540001234" maxlength="12" value="${S.d.iin}" oninput="S.d.iin=this.value"></div>
+      <div class="field"><label>Наименование / ФИО<span class="req"> ★</span></label><input type="text" placeholder="ИП «Жайлау»" value="${S.d.name}" oninput="S.d.name=this.value"></div>
+      <div class="field"><label>Область<span class="req"> ★</span></label>
+        <select onchange="S.d.oblast=this.value;render()">
+          <option value="">— выберите —</option>
+          ${oblasts.map(o=>`<option value="${o}" ${S.d.oblast===o?'selected':''}>${o}</option>`).join('')}
+        </select>
+        ${S.d.oblast ? (()=>{const z=getRegionalPastureNorm(S.d.oblast);return `<div class="region-norm-pill">📍 ${z.label} · пастбищная норма: ${z.load} гол./га</div>`;})() : ''}
+      </div>
+      <div class="field"><label>Тип субъекта</label>
+        <select onchange="S.d.farmType=this.value">
+          <option value="individual" ${S.d.farmType==='individual'?'selected':''}>КФХ / ИП</option>
+          <option value="llc" ${S.d.farmType==='llc'?'selected':''}>ТОО</option>
+          <option value="coop" ${S.d.farmType==='coop'?'selected':''}>Кооператив</option>
+          <option value="enterprise" ${S.d.farmType==='enterprise'?'selected':''}>АО / Предприятие</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="btn-row"><span style="font-size:11px;color:var(--text3)">★ — обязательные поля</span><button class="btn btn-primary" onclick="if(validateStep1())goStep(2)">Далее →</button></div>`;
+}
+
+/* ── ШАГ 2 — TASK 1: FULL KZ CROPS + LIVESTOCK ── */
+function s2(){
+  const regionZone = getRegionalPastureNorm(S.d.oblast);
+
+  const cropGroupsHTML = CROP_GROUPS.map(g=>`
+    <div class="crop-group">
+      <div class="crop-group-label">${g.label}${g.priority?' ⭐':''}</div>
+      <div class="check-grid">${g.items.map(c=>{
+        const isPri=PRIORITY_CROPS.has(c);
+        return `<div class="check-item ${isPri?'priority-item':''} ${S.d.crops.includes(c)?'checked':''}" onclick="toggleArr('crops','${c}')"><div class="check-dot"></div>${c}</div>`;
+      }).join('')}</div>
+    </div>`).join('');
+
+  const lsGroupsHTML = LIVESTOCK_GROUPS.map(g=>`
+    <div class="crop-group">
+      <div class="crop-group-label">${g.label}${g.priority?' ⭐':''}</div>
+      <div class="check-grid">${g.items.map(c=>{
+        const isPri=PRIORITY_LIVESTOCK.has(c);
+        return `<div class="check-item ${isPri?'priority-item':''} ${S.d.livestock.includes(c)?'checked':''}" onclick="toggleArr('livestock','${c}')"><div class="check-dot"></div>${c}</div>`;
+      }).join('')}</div>
+    </div>`).join('');
+
+  return `${stepper()}
+  <div class="card fade-in">
+    <div class="card-title">Площадь и опыт</div>
+    <div class="form-grid">
+      <div class="range-wrap"><div class="range-header"><label style="font-size:11px;color:var(--text2);font-weight:500">Площадь земли (га)</label><span class="range-val" id="rv-ha">${S.d.hectares} га</span></div><input type="range" min="1" max="5000" step="1" value="${S.d.hectares}" oninput="S.d.hectares=+this.value;R('rv-ha').textContent=this.value+' га'"></div>
+      <div class="range-wrap"><div class="range-header"><label style="font-size:11px;color:var(--text2);font-weight:500">Лет в агробизнесе</label><span class="range-val" id="rv-yr">${S.d.yearsOp} лет</span></div><input type="range" min="0" max="30" step="1" value="${S.d.yearsOp}" oninput="S.d.yearsOp=+this.value;R('rv-yr').textContent=this.value+' лет'"></div>
+    </div>
+  </div>
+  <div class="card fade-in">
+    <div class="card-title">Растениеводство (⭐ = экспортный / приоритетный)</div>
+    ${cropGroupsHTML}
+  </div>
+  <div class="card fade-in">
+    <div class="card-title">Животноводство (⭐ = племенное / приоритетное)</div>
+    ${lsGroupsHTML}
+  </div>
+  <div class="card fade-in">
+    <div class="card-title" style="color:var(--gold)">Данные животноводства — НПА МСХ РК</div>
+    <div class="alert alert-warn" style="margin-bottom:14px">
+      <span class="alert-icon">⚖</span>
+      <span>Данные для проверки по <strong>Приказу МСХ РК №12488</strong> (нормы убыли) и <strong>Приказу МСХ РК №11064</strong> (нагрузка на пастбища).<br>
+      Региональная норма пастбищ для <strong>${S.d.oblast||'вашей области'}</strong>: <strong>${regionZone.load} гол./га</strong> (${regionZone.label}).</span>
+    </div>
+    <div class="form-grid" style="margin-bottom:14px">
+      <div class="field"><label>Общее поголовье (голов)</label><input type="number" inputmode="numeric" min="0" placeholder="0" value="${S.d.totalLivestock||''}" oninput="S.d.totalLivestock=+this.value||0" style="font-family:var(--mono)"></div>
+      <div class="field"><label>Павших животных за год (голов)</label><input type="number" inputmode="numeric" min="0" placeholder="0" value="${S.d.deadAnimalsYear||''}" oninput="S.d.deadAnimalsYear=+this.value||0" style="font-family:var(--mono)"></div>
+      <div class="field"><label>Площадь пастбищ (га)</label><input type="number" inputmode="numeric" min="0" step="0.1" placeholder="0" value="${S.d.pastureHectares||''}" oninput="S.d.pastureHectares=+this.value||0" style="font-family:var(--mono)"></div>
+      <div class="field" style="justify-content:flex-end">
+        <label style="margin-bottom:6px">Регистрация в ИСЖ/ИАС</label>
+        <div class="check-item ${S.d.hasIasRegistration?'checked':''}" onclick="S.d.hasIasRegistration=!S.d.hasIasRegistration;render()" style="width:fit-content"><div class="check-dot"></div>Зарегистрировано в ИСЖ/ИАС</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:5px">Обязательно для субсидий на животноводство</div>
+      </div>
+    </div>
+  </div>
+  <div class="card fade-in">
+    <div class="card-title">Характеристики хозяйства</div>
+    <div class="form-grid" style="margin-bottom:14px">
+      <div class="range-wrap"><div class="range-header"><label style="font-size:11px;color:var(--text2);font-weight:500">Работников (чел.)</label><span class="range-val" id="rv-em">${S.d.employees}</span></div><input type="range" min="0" max="200" step="1" value="${S.d.employees}" oninput="S.d.employees=+this.value;R('rv-em').textContent=this.value"></div>
+      <div class="range-wrap"><div class="range-header"><label style="font-size:11px;color:var(--text2);font-weight:500">Техника (млн тг)</label><span class="range-val" id="rv-eq">${S.d.equipment}</span></div><input type="range" min="0" max="500" step="5" value="${S.d.equipment}" oninput="S.d.equipment=+this.value;R('rv-eq').textContent=this.value"></div>
+    </div>
+    <hr class="divider">
+    <div class="check-grid">${[['irrigated','Орошение'],['ownLand','Земля в собственности'],['certifiedSeeds','Сертифицированные семена']].map(([k,l])=>`<div class="check-item ${S.d[k]?'checked':''}" onclick="S.d['${k}']=!S.d['${k}'];render()"><div class="check-dot"></div>${l}</div>`).join('')}</div>
+  </div>
+  <div class="btn-row"><button class="btn btn-ghost" onclick="goStep(1)">← Назад</button><button class="btn btn-primary" onclick="goStep(3)">Далее →</button></div>`;
+}
+
+/* ── ШАГ 3 ── */
+function s3(){
+  return `${stepper()}
+  <div class="card fade-in">
+    <div class="card-title">Финансовые показатели</div>
+    <div class="form-grid" style="margin-bottom:14px">
+      <div class="range-wrap"><div class="range-header"><label style="font-size:11px;color:var(--text2);font-weight:500">Годовая выручка (тыс. тг)</label><span class="range-val" id="rv-rev">${S.d.revenue.toLocaleString('ru')}</span></div><input type="range" min="0" max="500000" step="500" value="${S.d.revenue}" oninput="S.d.revenue=+this.value;R('rv-rev').textContent=(+this.value).toLocaleString('ru')"></div>
+      <div class="range-wrap"><div class="range-header"><label style="font-size:11px;color:var(--text2);font-weight:500">Кредитный рейтинг (0–100)</label><span class="range-val" id="rv-cr">${S.d.creditScore}</span></div><input type="range" min="0" max="100" step="1" value="${S.d.creditScore}" oninput="S.d.creditScore=+this.value;R('rv-cr').textContent=this.value"></div>
+    </div>
+    <hr class="divider">
+    <div class="form-grid-3">
+      <div class="field"><label>История субсидий</label><select onchange="S.d.subsidyHistory=this.value"><option value="none" ${S.d.subsidyHistory==='none'?'selected':''}>Не получал</option><option value="once" ${S.d.subsidyHistory==='once'?'selected':''}>Разово</option><option value="regular" ${S.d.subsidyHistory==='regular'?'selected':''}>Регулярно</option><option value="violations" ${S.d.subsidyHistory==='violations'?'selected':''}>С нарушениями</option></select></div>
+      <div class="field"><label>Кредитная история</label><select onchange="S.d.loans=this.value"><option value="none" ${S.d.loans==='none'?'selected':''}>Без кредитов</option><option value="good" ${S.d.loans==='good'?'selected':''}>Без нарушений</option><option value="delayed" ${S.d.loans==='delayed'?'selected':''}>Просрочки</option><option value="bad" ${S.d.loans==='bad'?'selected':''}>Проблемные</option></select></div>
+      <div class="field"><label>Налоговый статус</label><select onchange="S.d.taxStatus=this.value"><option value="compliant" ${S.d.taxStatus==='compliant'?'selected':''}>Без задолженностей</option><option value="minor" ${S.d.taxStatus==='minor'?'selected':''}>Мелкие долги</option><option value="major" ${S.d.taxStatus==='major'?'selected':''}>Крупные долги</option></select></div>
+    </div>
+  </div>
+  <div class="card fade-in">
+    <div class="card-title">Документы заявки</div>
+    <div class="check-grid">${[['doc_land','Правоустанавливающие документы'],['doc_reg','Свидетельство о регистрации'],['doc_tax','Справка об отсутствии задолженности'],['doc_report','Финансовая отчётность'],['doc_insurance','Полис агрострахования'],['doc_plan','Бизнес-план']].map(([k,l])=>`<div class="check-item ${S.d.documents.includes(k)?'checked':''}" onclick="toggleArr('documents','${k}')"><div class="check-dot"></div><span style="font-size:11px">${l}</span></div>`).join('')}</div>
+  </div>
+  <div class="alert alert-info fade-in"><span class="alert-icon">⚡</span><span>Система выполнит: анти-фрод (6 критериев) → НПА МСХ РК (Приказы №12488 + №11064, региональные нормы) → AI-скоринг (XGBoost или локальный движок).</span></div>
+  <div class="btn-row"><button class="btn btn-ghost" onclick="goStep(2)">← Назад</button><button class="btn btn-primary" onclick="runScoring()">⚡ Запустить скоринг</button></div>`;
+}
+
+/* ── ЗАГРУЗКА ── */
+function sLoading(){
+  return `<div class="loading-screen fade-in">
+    <div class="loader-ring"></div>
+    <div style="font-size:15px;font-weight:600;margin-bottom:6px">Анализ заявки...</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:4px">АгроСкоринг v4.0 · Гибридный движок + НПА</div>
+    <div class="stage-list">
+      ${['Анти-фрод проверка (6 критериев)','Проверка НПА (Приказ №12488 — убыль скота)','Проверка НПА (Приказ №11064 — нагрузка пастбищ, регион)','Расчёт 5 блоков · XGBoost / Rule Engine','Применение штрафов · Explainability · Human Verdict'].map((s,i)=>`<div class="stage-item" id="si-${i}"><div class="s-dot"></div><span>${s}</span></div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ── РЕЗУЛЬТАТЫ ── */
+function sResults(){
+  const res=S.result, score=res.score;
+  const {f,p,r,c,s}=res.scoreBlocks;
+  const vClass=score>=65?'approve':score>=40?'review':'reject';
+  const vText=score>=65?'✓ Рекомендовано к одобрению':score>=40?'◎ Требует доп. проверки':'✗ Рекомендовано отклонить';
+
+  // Gauge
+  const CX=110,CY=96,RG=78,sa=Math.PI*.75,ea=Math.PI*2.25;
+  const ang=sa+(score/100)*(ea-sa);
+  const p1x=CX+RG*Math.cos(sa),p1y=CY+RG*Math.sin(sa),p2x=CX+RG*Math.cos(ea),p2y=CY+RG*Math.sin(ea);
+  const px=CX+RG*Math.cos(ang),py=CY+RG*Math.sin(ang);
+  const la=(ea-sa)>Math.PI?1:0,lf=((score/100)*(ea-sa))>Math.PI?1:0;
+  const gc=score>=65?'#00c9a7':score>=40?'#f5b731':'#ff6b6b';
+  const gauge=`<svg viewBox="0 0 220 148" width="100%" style="max-width:220px"><defs><linearGradient id="gtrack" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#f5b731"/><stop offset="100%" stop-color="#00c9a7"/></linearGradient></defs><path d="M${p1x} ${p1y} A${RG} ${RG} 0 ${la} 1 ${p2x} ${p2y}" fill="none" stroke="url(#gtrack)" stroke-width="11" stroke-linecap="round" opacity=".18"/><path d="M${p1x} ${p1y} A${RG} ${RG} 0 ${lf} 1 ${px} ${py}" fill="none" stroke="${gc}" stroke-width="11" stroke-linecap="round"/><circle cx="${px}" cy="${py}" r="5.5" fill="${gc}"/><text x="${CX}" y="${CY-6}" text-anchor="middle" fill="${gc}" font-size="38" font-weight="700" font-family="'JetBrains Mono',monospace">${score}</text><text x="${CX}" y="${CY+14}" text-anchor="middle" fill="#8892a4" font-size="11" font-family="'Golos Text',sans-serif">из 100</text><text x="22" y="${CY+44}" fill="#ff6b6b" font-size="9" font-family="'Golos Text',sans-serif">Отказ</text><text x="${CX}" y="${CY+44}" text-anchor="middle" fill="#f5b731" font-size="9" font-family="'Golos Text',sans-serif">Условно</text><text x="198" y="${CY+44}" text-anchor="end" fill="#00c9a7" font-size="9" font-family="'Golos Text',sans-serif">Одобрено</text></svg>`;
+
+  // Anti-fraud
+  const fraudChecks=runAntiFraud(S.d);
+  const fraudHTML=`<div class="card fade-in"><div class="card-title">Автоматическая проверка (Анти-фрод)</div><div class="fraud-list">
+    ${fraudChecks.map(ch=>`<div class="fraud-item ${ch.ok&&!ch.warn?'fraud-ok':!ch.ok?'fraud-fail':'fraud-warn'}"><span class="fraud-icon">${ch.ok&&!ch.warn?'✓':!ch.ok?'✗':'◎'}</span><div><span class="fraud-label">${ch.label}:</span>${ch.desc}</div></div>`).join('')}
+  </div></div>`;
+
+  // NPA block
+  const npa=res.npaResult||NPA.check(S.d);
+  const hasLivestockData=(S.d.totalLivestock>0||(S.d.livestock||[]).length>0);
+  const npaViolations=npa.violations||[];
+  const npaWarnings=(npa.warnings||[]).filter(w=>w.penalty||w.code==='NO_IAS');
+  const npaBonuses=npa.bonuses||[];
+  const npaPenalty=npa.penalty??npa.penalties_total??0;
+  const npaAllOk=npa.allPassed??(npaViolations.length===0&&npaWarnings.length===0);
+  const regionZone=getRegionalPastureNorm(S.d.oblast);
+  const npaBadge=npaAllOk?`<span class="npa-badge-ok">✓ Нормативы соблюдены</span>`:npaViolations.length>0?`<span class="npa-badge-fail">⚠ Нарушение НПА · −${npaPenalty} баллов</span>`:`<span class="npa-badge-warn">◎ Требует внимания · −${npaPenalty} баллов</span>`;
+  const npaItemsHTML=[
+    ...npaViolations.map(v=>`<div class="npa-item npa-critical"><span class="npa-icon">⛔</span><div style="flex:1"><div>${v.message}<span class="npa-penalty-tag">−${v.penalty||0} баллов</span></div>${v.rule?`<div class="npa-rule">📋 ${v.rule}</div>`:''}<div class="npa-rule">📍 ${regionZone.desc}</div>${v.norm&&v.actual?`<div class="npa-norm-row"><div class="npa-norm-cell"><div class="npa-norm-label">Норма</div><div class="npa-norm-val" style="color:var(--teal)">${v.norm}</div></div><div class="npa-norm-cell"><div class="npa-norm-label">Фактически</div><div class="npa-norm-val" style="color:var(--red)">${v.actual}</div></div></div>`:''}</div></div>`),
+    ...npaWarnings.map(w=>`<div class="npa-item npa-warning"><span class="npa-icon">⚠</span><div style="flex:1"><div>${w.message}${w.penalty?`<span class="npa-penalty-tag">−${w.penalty} баллов</span>`:''}</div>${w.rule?`<div class="npa-rule">📋 ${w.rule}</div>`:''}</div></div>`),
+    ...npaBonuses.map(b=>`<div class="npa-item npa-ok"><span class="npa-icon">✓</span><div>${b}</div></div>`),
+  ].join('');
+  const npaHTML=`<div class="npa-block fade-in">
+    <div class="npa-header"><div class="card-title" style="margin:0">⚖ Соответствие законодательству РК</div>${npaBadge}</div>
+    ${!hasLivestockData?`<div class="alert alert-info" style="margin-bottom:0"><span class="alert-icon">ℹ</span><span>Данные о животноводстве не введены. Заполните поля на шаге 2 для проверки по Приказам МСХ РК №12488 и №11064.</span></div>`:`
+    <div class="npa-list">${npaItemsHTML}</div>
+    ${npaPenalty>0?`<div class="npa-total-penalty"><span class="npa-penalty-big">−${npaPenalty}</span><div><div style="font-weight:600;margin-bottom:2px">Суммарный штраф к скоринговому баллу</div><div style="font-size:11px;opacity:.8">Нарушение нормативных актов МСХ РК снижает итоговый балл. Устраните нарушения для повышения оценки.</div></div></div>`:''}`}
+  </div>`;
+
+  // Human-readable verdict
+  const posFactors=res.factors.filter(f=>f.impact>0).sort((a,b)=>b.impact-a.impact);
+  const negFactors=res.factors.filter(f=>f.impact<=0).sort((a,b)=>a.impact-b.impact);
+  const topPos=posFactors[0]?.name||'—';
+  const topNeg=negFactors[0]?.name||'нет негативных факторов';
+  const hvTitle=score>=65?'Система рекомендует одобрение':score>=40?'Система рекомендует дополнительную проверку':'Система рекомендует отклонить заявку';
+  const humanVerdictHTML=`<div class="card fade-in"><div class="card-title">Понятный вывод (Human-Readable Verdict)</div>
+    <div class="human-verdict human-verdict-${vClass}">
+      <div class="hv-title hv-${vClass}">${hvTitle}</div>
+      <div class="hv-body">Главный <strong>положительный фактор</strong>: <span class="hv-factor">${topPos}</span>${posFactors[0]?' (вклад +'+posFactors[0].impact+' пунктов)':''}.<br>
+      ${negFactors.length>0?`Главный <strong>фактор риска</strong>: <span class="hv-factor">${topNeg}</span>${negFactors[0]&&negFactors[0].impact<0?' (вклад '+negFactors[0].impact+' пунктов)':''}.<br>`:''}
+      Итоговый балл <strong>${score} из 100</strong> ${score>=65?'превышает порог одобрения (65)':score>=40?'в промежуточной зоне (40–64)':'ниже минимального порога (40)'}.
+      ${hasPriority(S.d)?'<br>⭐ Хозяйство работает с приоритетными экспортными культурами или племенным животноводством.':''}
+      </div>
+    </div>
+  </div>`;
+
+  // Region comparison
+  const regionData={
+    revenue:{label:'Выручка (тыс. тг)',user:S.d.revenue,region:45000,max:200000},
+    hectares:{label:'Площадь (га)',user:S.d.hectares,region:250,max:2000},
+    employees:{label:'Работников',user:S.d.employees,region:15,max:100},
+    creditScore:{label:'Кредитный рейтинг',user:S.d.creditScore,region:58,max:100},
+    equipment:{label:'Техника (млн тг)',user:S.d.equipment,region:55,max:300},
+  };
+  const regionHTML=`<div class="card fade-in"><div class="card-title">Сравнение с регионом (${S.d.oblast||'ср. по РК'})</div>
+    <div class="compare-grid">
+      <div class="compare-col"><div class="compare-title" style="color:var(--blue)">Заявитель</div>${Object.values(regionData).map(row=>`<div class="compare-row"><div class="compare-label">${row.label}</div><div class="compare-bar-wrap"><div class="compare-bar-bg"><div class="compare-bar-fill" style="width:${Math.min(100,row.user/row.max*100).toFixed(0)}%;background:var(--blue)"></div></div><span class="compare-val" style="color:var(--blue)">${row.user.toLocaleString('ru')}</span></div></div>`).join('')}</div>
+      <div class="compare-col"><div class="compare-title" style="color:var(--gold)">Среднее по региону</div>${Object.values(regionData).map(row=>`<div class="compare-row"><div class="compare-label">${row.label}</div><div class="compare-bar-wrap"><div class="compare-bar-bg"><div class="compare-bar-fill" style="width:${Math.min(100,row.region/row.max*100).toFixed(0)}%;background:var(--gold)"></div></div><span class="compare-val" style="color:var(--gold)">${row.region.toLocaleString('ru')}</span></div></div>`).join('')}</div>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-top:10px">* Данные МСХ РК. Синий — заявитель, золотой — среднее по региону.</div>
+  </div>`;
+
+  // Expert panel
+  const expertPanel = currentRole==='farmer'
+    ? `<div class="card fade-in"><div class="card-title">Статус заявки</div><div class="expert-locked"><div style="font-size:24px;margin-bottom:8px">⏳</div><div style="font-weight:600;margin-bottom:6px">Заявка на рассмотрении</div><div style="font-size:12px;color:var(--text2)">Ваша заявка передана уполномоченному эксперту МСХ РК. Панель решений доступна только аттестованным сотрудникам.</div></div></div>`
+    : `<div class="card fade-in"><div class="card-title" style="margin-bottom:12px">🛡 Решение уполномоченного эксперта</div>
+        <div class="alert alert-warn"><span class="alert-icon">⚠</span><span>Балл модели — <strong>рекомендация</strong>. Окончательное решение принимается экспертом и фиксируется с ЭЦП в аудит-журнале.</span></div>
+        <div class="decision-row">
+          <div class="decision-btn ${S.expertDecision==='approve'?'sel-approve':''}" onclick="setEx('approve')">✓ Одобрить</div>
+          <div class="decision-btn ${S.expertDecision==='review'?'sel-review':''}" onclick="setEx('review')">◎ На доработку</div>
+          <div class="decision-btn ${S.expertDecision==='reject'?'sel-reject':''}" onclick="setEx('reject')">✗ Отклонить</div>
+        </div>
+        <div class="field"><label style="font-size:11px;color:var(--text2);font-weight:500">Комментарий эксперта</label><textarea rows="3" placeholder="Укажите обоснование..." style="resize:vertical;margin-top:6px" oninput="S.expertNote=this.value">${S.expertNote}</textarea></div>
+        <div class="btn-row" style="margin-top:14px">
+          <button class="btn btn-ghost" onclick="resetAll()">← Новая заявка</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-blue no-print" onclick="printReport()">🖨 Печать заключения</button>
+            <button class="btn btn-primary" onclick="finalize()">🔐 Подписать ЭЦП →</button>
+          </div>
+        </div>
+      </div>`;
+
+  return `<div class="fade-in">
+    <div class="info-row">
+      <div class="info-chip"><span style="color:var(--text3)">Заявитель:</span><span class="chip-val">${S.d.name||'—'}</span></div>
+      <div class="info-chip"><span style="color:var(--text3)">ИИН:</span><span class="chip-val">${S.d.iin||'—'}</span></div>
+      <div class="info-chip"><span style="color:var(--text3)">Область:</span><span class="chip-val">${S.d.oblast||'—'}</span></div>
+      <div class="info-chip"><span style="color:var(--text3)">Площадь:</span><span class="chip-val">${S.d.hectares} га</span></div>
+      <div class="info-chip"><span style="color:var(--text3)">Движок:</span><span class="chip-val" style="color:var(--blue)">${res.engineLabel||'v4.0'}</span></div>
+      ${npaPenalty>0?`<div class="info-chip" style="background:rgba(255,107,107,.06);border-color:rgba(255,107,107,.2)"><span style="color:var(--text3)">Штраф НПА:</span><span class="chip-val" style="color:var(--red)">−${npaPenalty} баллов</span></div>`:''}
+      ${hasPriority(S.d)?`<div class="info-chip" style="background:rgba(72,149,239,.06);border-color:rgba(72,149,239,.2)"><span style="color:var(--text3)">Приоритет:</span><span class="chip-val" style="color:var(--blue)">⭐ Высокий</span></div>`:''}
+    </div>
+    ${fraudHTML}
+    ${npaHTML}
+    ${humanVerdictHTML}
+    <div class="score-meta-grid">
+      <div class="meta-card"><div class="meta-val" style="color:${f>=18?'var(--teal)':f<10?'var(--red)':'var(--gold)'};">${f}<span style="font-size:12px;color:var(--text3)">/25</span></div><div class="meta-label">Финансы</div></div>
+      <div class="meta-card"><div class="meta-val" style="color:${p>=15?'var(--teal)':p<8?'var(--red)':'var(--gold)'};">${p}<span style="font-size:12px;color:var(--text3)">/20</span></div><div class="meta-label">Производство</div></div>
+      <div class="meta-card"><div class="meta-val" style="color:${r>=15?'var(--teal)':r<8?'var(--red)':'var(--gold)'};">${r}<span style="font-size:12px;color:var(--text3)">/20</span></div><div class="meta-label">Надёжность</div></div>
+      <div class="meta-card"><div class="meta-val" style="color:${c>=15?'var(--teal)':c<8?'var(--red)':'var(--gold)'};">${c}<span style="font-size:12px;color:var(--text3)">/20</span></div><div class="meta-label">Документы</div></div>
+    </div>
+    <div class="result-main">
+      <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <div class="card-title" style="width:100%">Итоговый балл</div>
+        <div class="gauge-wrap" style="padding:8px 0 4px;width:100%">${gauge}</div>
+        <div class="score-verdict verdict-${vClass}">${vText}</div>
+      </div>
+      <div class="card"><div class="card-title">Факторы влияния (SHAP / Rule)</div><div class="factor-list">
+        ${res.factors.map(fac=>{const cls=fac.impact>0?'bar-green':fac.impact<-5?'bar-red':'bar-yellow';const scls=fac.impact>0?'score-green':fac.impact<-5?'score-red':'score-yellow';const sign=fac.impact>0?'+':'';return `<div class="factor-item"><div class="factor-header"><span class="factor-name">${fac.name}</span><span class="factor-score ${scls}">${sign}${fac.impact}</span></div><div class="factor-bar-bg"><div class="factor-bar-fill ${cls}" style="width:${fac.weight}%"></div></div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3)"><span>${fac.raw} из ${fac.max}</span><span>${fac.weight}%</span></div></div>`;}).join('')}
+      </div></div>
+    </div>
+    ${regionHTML}
+    <div class="card"><div class="card-title">Детализация расчёта</div>
+      <table class="breakdown-table">
+        ${[['Финансовая состоятельность',f,25],['Производственный потенциал',p,20],['Надёжность и история',r,20],['Документы и соответствие',c,20],['Социально-экономический эффект',s,15]].map(([n,v,m])=>`<tr><td style="color:var(--text2)">${n}</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:4px;border-radius:2px;background:var(--bg3);overflow:hidden;min-width:60px"><div style="height:100%;width:${Math.round(v/m*100)}%;background:${v/m>=.75?'#00c9a7':v/m>=.5?'#f5b731':'#ff6b6b'};border-radius:2px"></div></div><span style="font-family:var(--mono);font-size:12px;font-weight:600">${v}</span><span class="score-max">/ ${m}</span></div></td></tr>`).join('')}
+        <tr style="border-top:2px solid var(--border2)"><td style="font-weight:600;padding-top:10px">ИТОГО</td><td style="padding-top:10px"><span style="font-family:var(--mono);font-size:16px;font-weight:700;color:${score>=65?'#00c9a7':score>=40?'#f5b731':'#ff6b6b'}">${score}</span><span style="color:var(--text3);font-size:12px"> / 100</span></td></tr>
+      </table>
+    </div>
+    ${res.risks&&res.risks.length?`<div class="card"><div class="card-title">Риски (специфика РК)</div><div class="risk-tags">${res.risks.map(risk=>`<div class="risk-tag tag-${risk.level}"><span style="flex-shrink:0">${risk.level==='red'?'⚠':risk.level==='yellow'?'◎':'✓'}</span><span>${risk.text}</span></div>`).join('')}</div></div>`:''}
+    <div class="card"><div class="card-title">Объяснение модели (Explainability)</div><div class="explain-box">${res.explanation}</div><div class="explain-meta"><span>⚡</span> ${res.engineLabel||'v4.0'} · Требует верификации экспертом · НПА: Приказы №12488, №11064</div></div>
+    ${expertPanel}
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TASK 4 — PRINT REPORT
+   ═══════════════════════════════════════════════════════════════ */
+function printReport(){
+  if(!S.result){alert('Сначала выполните скоринг.');return;}
+  document.getElementById('print-date').textContent =
+    'Дата формирования: ' + new Date().toLocaleString('ru',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  window.print();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACTIONS
+   ═══════════════════════════════════════════════════════════════ */
+function goStep(n){S.step=n;render();window.scrollTo(0,0);}
+function setEx(d){S.expertDecision=d;render();}
+function resetAll(){S.step=1;S.result=null;S.expertDecision=null;S.expertNote='';render();}
+
+function runScoring(){
+  S.step='loading';render();
+  let si=0;
+  const iv=setInterval(()=>{
+    if(si>0){const prev=document.getElementById('si-'+(si-1));if(prev){prev.classList.remove('active');prev.classList.add('done');}}
+    const cur=document.getElementById('si-'+si);if(cur)cur.classList.add('active');
+    si++;if(si>4)clearInterval(iv);
+  },600);
+  setTimeout(async()=>{
+    clearInterval(iv);
+    [0,1,2,3,4].forEach(i=>{const el=document.getElementById('si-'+i);if(el){el.classList.remove('active');el.classList.add('done');}});
+    setTimeout(async()=>{
+      try{S.result=await ScoringEngine.calculate(S.d);}
+      catch(err){console.error('[АгроСкоринг] Ошибка:',err);alert('Ошибка расчёта.');goStep(3);return;}
+      S.step='results';render();
+    },200);
+  },3200);
+}
+
+/* ── EDS MODAL ── */
+function finalize(){if(!S.expertDecision){alert('Выберите решение эксперта.');return;}showEdsModal();}
+
+function showEdsModal(){
+  edsProcessing=false;
+  const dl={approve:'ОДОБРИТЬ заявку',review:'НА ДОРАБОТКУ',reject:'ОТКЛОНИТЬ заявку'};
+  const dc={approve:'var(--teal)',review:'var(--gold)',reject:'var(--red)'};
+  const cert='KZ'+Math.random().toString(36).substring(2,8).toUpperCase();
+  const now=new Date().toLocaleString('ru',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('eds-content').innerHTML=`
+    <div class="modal-title">🔐 Подписание ЭЦП</div>
+    <div class="modal-sub">Введите пароль ключа ЭЦП (НУЦ РК)</div>
+    <div class="eds-cert-box">
+      <div class="eds-cert-row"><span>Действие:</span><span class="eds-cert-val" style="color:${dc[S.expertDecision]}">${dl[S.expertDecision]}</span></div>
+      <div class="eds-cert-row"><span>Заявитель:</span><span class="eds-cert-val">${S.d.name||'—'}</span></div>
+      <div class="eds-cert-row"><span>Балл модели:</span><span class="eds-cert-val">${S.result.score}/100</span></div>
+      <div class="eds-cert-row"><span>НПА статус:</span><span class="eds-cert-val" style="color:${(S.result.npaResult?.allPassed??true)?'var(--teal)':'var(--red)'}">${(S.result.npaResult?.allPassed??true)?'✓ Нормативы соблюдены':'⚠ Нарушения выявлены'}</span></div>
+      <div class="eds-cert-row"><span>Сертификат:</span><span class="eds-cert-val">${cert}</span></div>
+      <div class="eds-cert-row"><span>Время:</span><span class="eds-cert-val">${now}</span></div>
+    </div>
+    <input class="eds-field" type="password" id="eds-pwd" placeholder="••••••••" maxlength="20">
+    <div class="eds-info">🔒 НУЦ РК · Данные шифруются при передаче</div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="submitEds('${cert}')">✓ Подписать и отправить</button>`;
+  document.getElementById('eds-modal').style.display='flex';
+}
+
+function submitEds(cert){
+  const pwd=document.getElementById('eds-pwd').value;
+  if(!pwd||pwd.length<4){document.getElementById('eds-pwd').style.borderColor='var(--red)';return;}
+  edsProcessing=true;
+  document.getElementById('eds-content').innerHTML=`<div class="eds-success"><div class="eds-success-icon">⏳</div><div style="font-size:13px;color:var(--text2)">Подписание...</div></div>`;
+  setTimeout(()=>{
+    const rec=buildAuditLog(cert);
+    document.getElementById('eds-content').innerHTML=`
+      <div class="eds-success">
+        <div class="eds-success-icon">✅</div>
+        <div class="eds-success-title">Документ подписан</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:16px">Решение зафиксировано · TX: ${rec.tx_hash.substring(0,14)}...</div>
+        <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="closeEds();showAuditLog(${JSON.stringify(rec).replace(/"/g,'&quot;')})">Посмотреть аудит-журнал</button>
+      </div>`;
+    edsProcessing=false;
+    console.log('%c[АгроСкоринг 4.0] АУДИТ-ЛОГ','color:#00c9a7;font-weight:bold;',rec);
+  },1800);
+}
+function closeEds(){document.getElementById('eds-modal').style.display='none';}
+
+/* ── AUDIT LOG ── */
+function buildAuditLog(cert){
+  const ts=new Date().toISOString();
+  const txHash='0x'+Array.from({length:16},()=>Math.floor(Math.random()*16).toString(16)).join('');
+  const npa=S.result.npaResult||NPA.check(S.d);
+  const npaPen=npa.penalty??npa.penalties_total??0;
+  return {
+    event:'EXPERT_DECISION',timestamp:ts,tx_hash:txHash,certificate_serial:cert,
+    applicant:{iin:S.d.iin||'',name:S.d.name||'',oblast:S.d.oblast||''},
+    model_output:{
+      score:S.result.score,verdict:S.result.score>=65?'approve':S.result.score>=40?'review':'reject',
+      engine:S.result.engineLabel||'Local v4.0',priority:hasPriority(S.d)?'high':'standard',
+      top_positive:S.result.factors.filter(f=>f.impact>0).sort((a,b)=>b.impact-a.impact)[0]?.name||'—',
+      top_negative:S.result.factors.filter(f=>f.impact<0).sort((a,b)=>a.impact-b.impact)[0]?.name||'—',
+    },
+    npa_compliance:{
+      all_passed:npa.allPassed??true,penalties_total:npaPen,
+      violations_count:(npa.violations||[]).length,warnings_count:(npa.warnings||[]).length,
+      regional_pasture_norm:`${getRegionalPastureNorm(S.d.oblast).load} гол./га`,
+      total_livestock:S.d.totalLivestock||0,dead_animals_year:S.d.deadAnimalsYear||0,
+      pasture_hectares:S.d.pastureHectares||0,has_ias_registration:S.d.hasIasRegistration?1:0,
+      orders_checked:['Приказ МСХ РК №12488','Приказ МСХ РК №11064'],
+    },
+    expert_decision:{action:S.expertDecision,note:S.expertNote||'',overrides_model:S.expertDecision!==(S.result.score>=65?'approve':S.result.score>=40?'review':'reject')},
+    fraud_checks_passed:runAntiFraud(S.d).filter(c=>c.ok).length,
+    fraud_checks_total:6,
+    system_version:'АгроСкоринг-v4.0-Final',
+  };
+}
+
+function showAuditLog(record){
+  if(typeof record==='string')record=JSON.parse(record.replace(/&quot;/g,'"'));
+  const colorize=(obj,indent=0)=>{
+    const pad=' '.repeat(indent*2);
+    if(typeof obj==='string')return `<span class="audit-val-str">"${obj}"</span>`;
+    if(typeof obj==='number'||typeof obj==='boolean')return `<span class="audit-val-num">${obj}</span>`;
+    if(obj===null)return `<span class="audit-val-num">null</span>`;
+    if(Array.isArray(obj))return `[\n${obj.map(v=>pad+'  '+colorize(v,indent+1)).join(',\n')}\n${pad}]`;
+    const entries=Object.entries(obj).map(([k,v])=>`${pad}  <span class="audit-key">"${k}"</span>: ${colorize(v,indent+1)}`);
+    return `{\n${entries.join(',\n')}\n${pad}}`;
+  };
+  let el=document.getElementById('audit-log-block');
+  if(!el){const d=document.createElement('div');d.id='audit-log-block';d.className='card fade-in';d.style.marginTop='14px';document.getElementById('root').appendChild(d);el=d;}
+  el.innerHTML=`<div class="card-title">Аудит-журнал (Blockchain / Audit Log)</div>
+    <div class="alert alert-success" style="margin-bottom:12px"><span class="alert-icon">✓</span><span>Запись внесена · TX Hash: <strong style="font-family:var(--mono);font-size:11px">${record.tx_hash}</strong> · НПА: Приказы №12488, №11064</span></div>
+    <div class="audit-box">${colorize(record)}</div>
+    <div style="margin-top:10px;font-size:10px;color:var(--text3)">Дублируется в console.log (DevTools → Console) · В продакшене — синхронизируется с блокчейн-узлом МСХ РК</div>`;
+  el.scrollIntoView({behavior:'smooth'});
+}
+
+/* ── INIT ── */
+render();
+setRole('farmer');
+</script>
+</body>
+</html>
